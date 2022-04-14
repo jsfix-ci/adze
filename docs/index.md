@@ -5,7 +5,9 @@ heroImage: /logo.svg
 heroText: A Library for Shaping Your Logs
 tagline: Open the dev console for a demo
 actionText: Quick Start →
-actionLink: /guide/
+actionLink: /quick-start/
+guideText: Guide
+guideLink: /guide/
 features:
   - title: Chainable API
     image: /chainsaw.svg
