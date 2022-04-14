@@ -1,15 +1,8 @@
 <template>
-  <main
-    :aria-labelledby="data.heroText !== null ? 'main-title' : null"
-    class="theme-container"
-  >
+  <main :aria-labelledby="data.heroText !== null ? 'main-title' : null" class="theme-container">
     <div class="home-container">
       <header class="hero">
-        <img
-          v-if="data.heroImage"
-          :src="$withBase(data.heroImage)"
-          :alt="data.heroAlt || 'hero'"
-        />
+        <img v-if="data.heroImage" :src="$withBase(data.heroImage)" :alt="data.heroAlt || 'hero'" />
 
         <h1 v-if="data.heroText !== null" id="main-title">
           {{ data.heroText || $title || 'Hello' }}
@@ -47,16 +40,13 @@
             title="GitHub"
           ></iframe
           ><br /><br />
+          <nav-link class="guide-button" :item="guideLink" />&nbsp;&nbsp;
           <nav-link class="action-button" :item="actionLink" />
         </p>
       </header>
 
       <div v-if="data.features && data.features.length" class="features">
-        <div
-          v-for="(feature, index) in data.features"
-          :key="index"
-          class="feature"
-        >
+        <div v-for="(feature, index) in data.features" :key="index" class="feature">
           <h2>{{ feature.title }}</h2>
           <img :src="feature.image" :id="feature.imageId" />
           <p>{{ feature.details }}</p>
@@ -95,10 +85,7 @@
       <div class="content-container">
         <section class="content-block no-border centered">
           <div class="image">
-            <img
-              :src="$withBase('/lumber-scene-1.svg')"
-              style="width: 100%; max-height: 300px"
-            />
+            <img :src="$withBase('/lumber-scene-1.svg')" style="width: 100%; max-height: 300px" />
           </div>
           <div class="content">
             <Content slot-key="everything-configurable" />
@@ -112,10 +99,7 @@
       <!-- Chainable API -->
       <section class="content-block no-border">
         <div class="image">
-          <img
-            :src="$withBase('/truck-loaded.svg')"
-            style="max-height: 200px"
-          />
+          <img :src="$withBase('/truck-loaded.svg')" style="max-height: 200px" />
         </div>
         <div class="content">
           <Content slot-key="typescript-support" />
@@ -141,10 +125,7 @@
       <div class="content-container">
         <section class="content-block no-border">
           <div class="image">
-            <img
-              :src="$withBase('/shaped-wood.svg')"
-              style="max-height: 150px"
-            />
+            <img :src="$withBase('/shaped-wood.svg')" style="max-height: 150px" />
           </div>
           <div class="content">
             <Content slot-key="learn-more" />
@@ -186,11 +167,28 @@ export default {
         text: this.data.actionText,
       };
     },
+
+    guideLink() {
+      return {
+        link: this.data.guideLink,
+        text: this.data.guideText,
+      };
+    },
   },
 
   mounted() {
-    // Default logs for example
-    const { adze } = window.AdzeLib;
+    console.log(`
+ █████  ██████  ███████ ███████ 
+██   ██ ██   ██    ███  ██      
+███████ ██   ██   ███   █████   
+██   ██ ██   ██  ███    ██      
+██   ██ ██████  ███████ ███████ 
+    `);
+
+    console.log('\n----------------------\n| Default Log Levels:\n----------------------\n');
+
+    Object.assign(window, window.AdzeLib);
+
     adze().alert('Example alert log');
     adze().error('Example error log');
     adze().warn('Example warning log');
@@ -200,6 +198,10 @@ export default {
     adze().log('Example log');
     adze().debug('Example debug log');
     adze().verbose('Example verbose log');
+
+    console.log(
+      "\n-----------------------------------\n| Default Log Levels with Emoji's: \n-----------------------------------\n"
+    );
 
     // Logs with emoji's
     const log = adze({ use_emoji: true }).seal();
@@ -227,6 +229,18 @@ export default {
         },
       },
     }).custom('customError', 'This is a custom error log');
+
+    console.log(`
+-----------------------------------------------------------
+| Try it out for yourself here!
+| 
+| All exported members of the library are on the window.
+| Try using the adze() factory to start.
+| 
+| For example, copy and paste the line below:
+| adze().log("Hello world!");
+-----------------------------------------------------------
+`);
   },
 };
 </script>
@@ -250,6 +264,20 @@ export default {
   border-bottom 1px solid darken($accentColor, 10%)
   &:hover
     background-color lighten($accentColor, 10%)
+
+.guide-button
+  display inline-block
+  font-size 1.2rem
+  color #3a3a3a
+  background-color #eaecef
+  padding 0.8rem 1.6rem
+  border-radius 4px
+  border 1px solid #eaecef
+  transition background-color .1s ease
+  box-sizing border-box
+  border-bottom 1px solid darken(#eaecef, 10%)
+  &:hover
+    background-color lighten(#eaecef, 40%)
 
 .hero
   text-align center
