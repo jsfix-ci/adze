@@ -19,8 +19,6 @@ import {
   isFinalLogData,
   shedExists,
   defaultsDeep,
-  cloneDeep,
-  captureTimeNow,
 } from '../util';
 import { Label, addLabel, getLabel } from '../label';
 import { defaults } from '../_defaults';
@@ -79,11 +77,6 @@ export class Log<C extends Constraints> {
    * The namespaces assigned to this log.
    */
   private _namespaceVal: C['allowedNamespaces'][] | null = null;
-
-  /**
-   * The label instance assigned to this log.
-   */
-  private _labelVal: Label | null = null;
 
   /**
    * The time ellapsed when this log was terminated.
@@ -344,59 +337,6 @@ export class Log<C extends Constraints> {
   }
 
   /**
-   * Following the MDC (Mapped Diagnostic Context) pattern this method enables you to create
-   * a thread for adding context from different scopes before finally terminating the log.
-   *
-   * In order to create a thread, this log must specify a label that will be used to link the
-   * context and your environment must have a **shed** created.
-   *
-   * **Example:**
-   * ```typescript
-   * import { adze, createShed } from 'adze';
-   *
-   * const shed = createShed();
-   *
-   * // Creating a shed listener is a great way to get meta data from your
-   * // threaded logs to write to disk or pass to another plugin, library,
-   * // or service.
-   * shed.addListener([1,2,3,4,5,6,7,8], (log) => {
-   *   // Do something with `log.context.added` or `log.context.subtracted`.
-   * });
-   *
-   * function add(a, b) {
-   *   const answer = a + b;
-   *   adze().label('foo').thread('added', { a, b, answer });
-   *   return answer;
-   * }
-   *
-   * function subtract(x, y) {
-   *   const answer = x - y;
-   *   adze().label('foo').thread('subtracted', { x, y, answer });
-   *   return answer;
-   * }
-   *
-   * add(1, 2);
-   * subtract(4, 3);
-   *
-   * adze().label('foo').dump.info('Results from our thread');
-   * // Info => Results from our thread, { a: 1, b: 2, answer: 3 }, { x: 4, y: 3, answer: 1 }
-   *
-   * ```
-   *
-   * This is a non-standard API.
-   */
-  public thread<T>(key: string, value: T): void {
-    // Check if the log has a label. If not, console.warn the user.
-    // If the log has a label, attach the context to the label.
-    this.runModifierQueue();
-    if (this._labelVal) {
-      this._labelVal.addContext(key, value);
-    } else {
-      console.warn('Thread context was not added! Threads must have a label.');
-    }
-  }
-
-  /**
    * Closes a thread assigned to the log by clearing the context values.
    *
    * This is a non-standard API.
@@ -444,57 +384,6 @@ export class Log<C extends Constraints> {
   // =============================
   //   MODIFIERS
   // =============================
-
-  /**
-   * Adds to the log count for log instances that share this log's label.
-   *
-   * MDN API Docs [here](https://developer.mozilla.org/en-US/docs/Web/API/Console/count)
-   */
-  public get count(): this {
-    return this.modifier((ctxt) => {
-      if (ctxt._labelVal) {
-        ctxt._labelVal.addCount();
-      }
-    });
-  }
-
-  /**
-   * Resets the count for the log instances that share this log's label.
-   *
-   * MDN API Docs [here](https://developer.mozilla.org/en-US/docs/Web/API/Console/countReset)
-   */
-  public get countReset(): this {
-    return this.modifier((ctxt) => {
-      if (ctxt._labelVal) {
-        ctxt._labelVal.resetCount();
-      }
-    });
-  }
-
-  /**
-   * Unsets the count for the log instances that share this log's label.
-   *
-   * This is a non-standard method.
-   */
-  public get countClear(): this {
-    return this.modifier((ctxt) => {
-      if (ctxt._labelVal) {
-        ctxt._labelVal.clearCount();
-      }
-    });
-  }
-
-  /**
-   * Instructs the log terminator to add the key/value pairs from the
-   * thread context to the console output.
-   *
-   * This is a non-standard API.
-   */
-  public get dump(): this {
-    return this.modifier((ctxt) => {
-      ctxt.dumpContext = true;
-    });
-  }
 
   /**
    * Assign meta data to this log instance that is meant to be
@@ -665,47 +554,6 @@ export class Log<C extends Constraints> {
   public test(expression: boolean): this {
     return this.modifier((ctxt) => {
       ctxt.expression = expression;
-    });
-  }
-
-  /**
-   * Starts a timer associated with this log's *label*. This will do nothing if
-   * this log has no label.
-   *
-   * MDN API Docs [here](https://developer.mozilla.org/en-US/docs/Web/API/Console/time).
-   */
-  public get time(): this {
-    return this.modifier((ctxt) => {
-      if (ctxt._labelVal) {
-        ctxt._labelVal.startTime();
-      }
-    });
-  }
-
-  /**
-   * Modifies the log render to show the current high-resolution real time.
-   *
-   * This is a non-standard method.
-   */
-  public get timeNow(): this {
-    return this.modifier((ctxt) => {
-      ctxt.timeNowVal = captureTimeNow();
-    });
-  }
-
-  /**
-   * Stops a timer that was previously started by calling time() on a *labeled* log. Calculates the
-   * difference between the start time and when this method was called. This then
-   * modifies the log render to show the time difference. This will do nothing if the *label* does
-   * not exist.
-   *
-   * MDN API Docs [here](https://developer.mozilla.org/en-US/docs/Web/API/Console/timeEnd).
-   */
-  public get timeEnd(): this {
-    return this.modifier((ctxt) => {
-      if (ctxt._labelVal) {
-        ctxt._labelVal.endTime();
-      }
     });
   }
 
@@ -882,7 +730,7 @@ export class Log<C extends Constraints> {
    */
   public get data(): LogData<C> | FinalLogData<C> {
     const values: LogData<C> = {
-      cfg: cloneDeep(this.cfg),
+      cfg: structuredClone(this.cfg),
       level: this._level,
       definition: this.definition ? { ...this.definition } : null,
       args: this.args ? [...this.args] : null,
@@ -912,7 +760,7 @@ export class Log<C extends Constraints> {
    * Hydrate this log's properties from a log data object.
    */
   public hydrate(data: LogData<C> | FinalLogData<C>): this {
-    this.cfg = cloneDeep(data.cfg);
+    this.cfg = structuredClone(data.cfg);
     this._level = data.level;
     this.definition = data.definition ? { ...data.definition } : null;
     this.args = data.args ? [...data.args] : null;
