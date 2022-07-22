@@ -93,7 +93,10 @@ export function applyChalkStyles(
   fidelity: 0 | 1 | 2 | 3 = 1
 ): string {
   // Force chalk colors
-  const chalk = new _chalk.Instance({ level: fidelity });
+  const chalk = new /* TODO: JSFIX could not patch the breaking change:
+  Move some properties off the default export to individual named exports
+  Suggested fix: Import the properties individually. The new import names are: chalk.Instance → Chalk     chalk.supportsColor → supportsColor     chalk.stderr → chalkStderr     chalk.stderr.supportsColor → supportsColorStderr.*/
+  _chalk.Instance({ level: fidelity });
   return styles.reduce((acc, style) => {
     return chalk[style](acc);
   }, str);
